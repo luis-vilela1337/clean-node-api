@@ -13,5 +13,9 @@
     "-": "^0.0.1",
     "D": "^1.0.0",
     "git-commit-msg-linter": "^4.9.2"
+  },
+  "devDependencies": {
+    "@types/node": "^18.15.3",
+    "typescript": "^5.0.2"
   }
 }
