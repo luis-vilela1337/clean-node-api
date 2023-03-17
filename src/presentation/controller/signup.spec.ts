@@ -13,5 +13,7 @@ describe('SignUp Controller', () => {
     const httpResponse = sut.handle(httpRequest)
 
     expect(httpResponse.statusCode).toBe(400)
+    // toBe compara os ponteiros e o toEqual apenas os valores
+    expect(httpResponse.body).toEqual(new Error('Missing param: name'))
   })
 })
