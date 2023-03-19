@@ -1,10 +1,13 @@
 import { SignUpController } from './signup'
 import { MissingParamError, InvalidParamError, ServerError } from '../errors'
 import { type HttpRequest, type EmailValidator } from '../protocols'
+import { type AccountModel } from '../../domain/models/account'
+import { type AddAccount, type AddAccountModel } from '../../domain/usecases/add-account'
 
 interface SutTypes {
   sut: SignUpController
   emailValidatorStub: EmailValidator
+  addAcountStub
 }
 
 const makeEmailValidator = (): EmailValidator => {
@@ -16,13 +19,29 @@ const makeEmailValidator = (): EmailValidator => {
   return new EmailValidatorStub()
 }
 
+const makeAddAcount = (): AddAccount => {
+  class AddAccountStub implements AddAccount {
+    add (account: AddAccountModel): AccountModel {
+      return {
+        id: 'valid-id',
+        name: 'valid-name',
+        email: 'valid-email',
+        password: 'valid-password'
+      }
+    }
+  }
+  return new AddAccountStub()
+}
+
 const makeSut = (): SutTypes => {
   const emailValidatorStub = makeEmailValidator()
-  const sut = new SignUpController(emailValidatorStub)
+  const addAcountStub = makeAddAcount()
+  const sut = new SignUpController(emailValidatorStub, addAcountStub)
 
   return {
     sut,
-    emailValidatorStub
+    emailValidatorStub,
+    addAcountStub
   }
 }
 
@@ -42,6 +61,26 @@ describe('SignUp Controller', () => {
       sut.handle(httpRequest)
 
       expect(isValidSpy).toHaveBeenCalledWith('valid-email')
+    })
+
+    test('Should call AddAccount with correct values', () => {
+      const { sut, addAcountStub } = makeSut()
+      const addSpy = jest.spyOn(addAcountStub, 'add')
+      const httpRequest: HttpRequest = {
+        body: {
+          name: 'valid-name',
+          email: 'valid-email',
+          password: 'any_password',
+          passwordConfirmation: 'any_password'
+        }
+      }
+      sut.handle(httpRequest)
+
+      expect(addSpy).toHaveBeenCalledWith({
+        name: 'valid-name',
+        email: 'valid-email',
+        password: 'any_password'
+      })
     })
   })
 
